@@ -1,18 +1,5 @@
-// 🔑 KEY 1 (Parçalanmış)
-const k1_p1 = "AQ.Ab8RN6JAzN9SPyhKcK2HToIC";
-const k1_p2 = "Vm8vV2fa1G_bX2I71eXMb6S7vA";
-const KEY_1 = k1_p1 + k1_p2;
-
-// 🔑 KEY 2 (Parçalanmış)
-const k2_p1 = "AQ.Ab8RN6I1Da0HuYjR7G53QQq1";
-const k2_p2 = "-64PP6pbzMS4djczh1dGgzGpnA";
-const KEY_2 = k2_p1 + k2_p2;
-
-// Key Listesi ve Sıra Takibi
-const API_KEYS = [KEY_1, KEY_2];
-let aktifKeyIndex = 0;
-
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+// 🌐 Cloudflare Worker URL'n
+const WORKER_URL = "https://halilator-api.ekrater1231.workers.dev";
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -91,37 +78,20 @@ function dusunuyorResmiAyarla() {
     }
 }
 
-// Çift Key Dönüşümlü İstek Fonksiyonu
-async function geminiyeIstekAt(denemeSayisi = 0) {
-    const MEVCUT_KEY = API_KEYS[aktifKeyIndex];
-    aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
-
+async function geminiyeIstekAt() {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(WORKER_URL, {
             method: "POST",
             headers: { 
-                "Content-Type": "application/json",
-                "X-goog-api-key": MEVCUT_KEY
+                "Content-Type": "application/json"
             },
             body: JSON.stringify({ contents: sohbetGecmisi })
         });
 
-        if (response.status === 429 || response.status === 503) {
-            if (denemeSayisi < API_KEYS.length * 2) {
-                console.warn("Sıradaki key limite takıldı, yedek key'e geçiliyor...");
-                await new Promise(r => setTimeout(r, 1000));
-                return await geminiyeIstekAt(denemeSayisi + 1);
-            } else {
-                document.getElementById("question-text").innerText = "İki anahtarın da limiti doldu. Lütfen 10-15 saniye bekleyip tekrar tıklayın.";
-                butonlariDevreDisiBirak(false);
-                return;
-            }
-        }
-
         const data = await response.json();
 
         if (data.error) {
-            document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
+            document.getElementById("question-text").innerText = "API Hatası: " + (data.error.message || data.error);
             butonlariDevreDisiBirak(false);
             return;
         }
