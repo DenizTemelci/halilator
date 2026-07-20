@@ -6,79 +6,94 @@
 }
 
 body {
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: white;
+    background-color: #1e3a8a;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    padding: 20px;
 }
 
 .game-container {
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 30px;
-    width: 90%;
+    background: #2b4c7e;
+    width: 100%;
     max-width: 450px;
+    padding: 25px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
     text-align: center;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    color: white;
 }
 
 h1 {
-    font-size: 2.2rem;
+    color: #facc15;
     margin-bottom: 20px;
     letter-spacing: 2px;
-    color: #f1c40f;
 }
 
-.halil-box img {
+.character-box {
     width: 100%;
-    max-width: 280px;
-    height: auto;
-    border-radius: 12px; /* Köşeleri hafif yumuşatılmış şık dikdörtgen */
-    border: 3px solid #f1c40f;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.speech-bubble {
-    background: white;
-    color: #333;
-    padding: 18px;
+    max-width: 320px;
+    height: 250px;
+    margin: 0 auto 20px auto;
     border-radius: 15px;
-    font-size: 1.1rem;
+    overflow: hidden;
+    border: 3px solid #facc15;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #1e293b;
+}
+
+/* Fotoğrafın kartın dışına taşmasını %100 engelleyen kısım */
+.character-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.question-box {
+    background: white;
+    color: #1e293b;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
     font-weight: 600;
-    margin-bottom: 25px;
-    position: relative;
-    min-height: 70px;
+    font-size: 1.1rem;
+    min-height: 80px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.buttons-container {
+.button-box {
     display: flex;
     flex-direction: column;
     gap: 10px;
 }
 
 button {
-    background: #e67e22;
+    background: #f97316;
     color: white;
     border: none;
     padding: 12px 20px;
+    border-radius: 10px;
     font-size: 1rem;
     font-weight: bold;
-    border-radius: 10px;
     cursor: pointer;
     transition: background 0.2s, transform 0.1s;
 }
 
 button:hover {
-    background: #d35400;
-    transform: translateY(-2px);
+    background: #ea580c;
 }
 
 button:active {
-    transform: translateY(0);
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
 }
