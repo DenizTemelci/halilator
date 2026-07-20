@@ -1,9 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
-
-// 🔑 AQ... İLE BAŞLAYAN API KEY'İNİ BURAYA YAPIŞTIR:
+// 🔑 ELİNDEKİ AQ... İLE BAŞLAYAN TOKEN'I BURAYA YAPIŞTIR
 const API_KEY = "AQ.Ab8RN6L22KT4_pBUn9gMQR3rWgPSUp86VslwWowe40K4VTt2dA";
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -23,7 +19,7 @@ window.onload = () => {
     resimDegistir("baslangic");
 };
 
-window.oyunuBaslat = async function() {
+async function oyunuBaslat() {
     sohbetGecmisi = [
         { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
         { role: "user", parts: [{ text: "Oyun başladı. İlk sorunu sor." }] }
@@ -36,9 +32,9 @@ window.oyunuBaslat = async function() {
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
     await geminiyeIstekAt();
-};
+}
 
-window.cevapVer = async function(cevap) {
+async function cevapVer(cevap) {
     butonlariDevreDisiBirak(true);
     sohbetGecmisi.push({ role: "user", parts: [{ text: cevap }] });
 
@@ -50,7 +46,7 @@ window.cevapVer = async function(cevap) {
         else if (evetSayaci === 2) resimDegistir("emin");
         else resimDegistir("cok_emin");
 
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 2000));
 
     } else if (cevap === 'Hayır') {
         hayirSayaci++;
@@ -59,7 +55,7 @@ window.cevapVer = async function(cevap) {
         if (hayirSayaci === 1) resimDegistir("bilemedim");
         else resimDegistir("yanlis_cevap");
 
-        await new Promise(r => setTimeout(r, 3000));
+        await new Promise(r => setTimeout(r, 2000));
 
     } else {
         evetSayaci = 0;
@@ -70,7 +66,7 @@ window.cevapVer = async function(cevap) {
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
     await geminiyeIstekAt();
-};
+}
 
 function dusunuyorResmiAyarla() {
     if (sonDusunuyorResmi === 1) {
@@ -83,13 +79,35 @@ function dusunuyorResmiAyarla() {
 }
 
 async function geminiyeIstekAt() {
+    // Hem x-goog-api-key hem de Bearer header'ı göndererek yetkilendirme sorununu aşıyoruz:
+    const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: sohbetGecmisi,
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${API_KEY}`,
+                "x-goog-api-key": API_KEY
+            },
+            body: JSON.stringify({ contents: sohbetGecmisi })
         });
 
-        const gelenYanit = response.text.trim();
+        const data = await response.json();
+
+        if (data.error) {
+            document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
+            butonlariDevreDisiBirak(false);
+            return;
+        }
+
+        if (!data.candidates || !data.candidates[0]) {
+            document.getElementById("question-text").innerText = "Yanıt alınamadı, tekrar deneyin.";
+            butonlariDevreDisiBirak(false);
+            return;
+        }
+
+        const gelenYanit = data.candidates[0].content.parts[0].text.trim();
         sohbetGecmisi.push({ role: "model", parts: [{ text: gelenYanit }] });
 
         if (gelenYanit.startsWith("TAHMİN:")) {
@@ -109,7 +127,7 @@ async function geminiyeIstekAt() {
 
     } catch (error) {
         console.error("Bağlantı Hatası:", error);
-        document.getElementById("question-text").innerText = "API Hatası: " + (error.message || "Bağlantı kurulamadı.");
+        document.getElementById("question-text").innerText = "Bağlantı hatası oluştu!";
         butonlariDevreDisiBirak(false);
     }
 }
@@ -127,7 +145,7 @@ function butonlariDevreDisiBirak(durum) {
     butonlar.forEach(b => b.disabled = durum);
 }
 
-window.sonuc = function(dogruMu) {
+function sonuc(dogruMu) {
     if (dogruMu) {
         resimDegistir("bildim");
         document.getElementById("question-text").innerText = "Harika! Halilatör yine bildi! 😎";
@@ -139,7 +157,7 @@ window.sonuc = function(dogruMu) {
     document.getElementById("action-buttons").innerHTML = `
         <button onclick="oyunuBaslat()">Tekrar Oyna</button>
     `;
-};
+}
 
 function resimDegistir(durum) {
     const img = document.getElementById("halil-img");
