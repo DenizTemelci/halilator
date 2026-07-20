@@ -3,30 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Halilatör - Aklındaki Kişiyi Biliyorum!</title>
+    <title>Halilatör</title>
     <link rel="stylesheet" href="style.css">
+
+    <!-- Google Gemini SDK Modül Haritası -->
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/genai": "https://esm.run/@google/genai"
+        }
+      }
+    </script>
 </head>
 <body>
-
     <div class="game-container">
         <h1>HALİLATÖR</h1>
         
-        <!-- Halil'in Görsel Alanı -->
-        <div class="halil-box">
-            <img id="halil-img" src="images/baslangic.png" alt="Halil">
+        <div class="character-box">
+            <img id="halil-img" src="images/baslangic.png" alt="Halilatör">
         </div>
 
-        <!-- Konuşma Balonu (Soru ve Tahmin Yazısı) -->
-        <div class="speech-bubble">
-            <p id="question-text">Aklından birini tut ve 'Başla' butonuna bas!</p>
+        <div class="question-box">
+            <p id="question-text">Aklından birini tut ve Başla butonuna bas!</p>
         </div>
 
-        <!-- Butonlar -->
-        <div id="action-buttons" class="buttons-container">
-            <button id="start-btn" onclick="oyunuBaslat()">Başla</button>
+        <div id="action-buttons" class="button-box">
+            <button onclick="oyunuBaslat()">Başla</button>
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <!-- script.js dosyasını module olarak çağırıyoruz -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
