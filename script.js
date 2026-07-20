@@ -34,10 +34,11 @@ async function oyunuBaslat() {
     await geminiyeIstekAt();
 }
 
-async function cevapVer(cevap) {
+function cevapVer(cevap) {
     butonlariDevreDisiBirak(true);
     sohbetGecmisi.push({ role: "user", parts: [{ text: cevap }] });
 
+    // Anlık resim güncellemeleri (Gereksiz bekleme süreleri kaldırıldı)
     if (cevap === 'Evet') {
         evetSayaci++;
         hayirSayaci = 0;
@@ -46,16 +47,12 @@ async function cevapVer(cevap) {
         else if (evetSayaci === 2) resimDegistir("emin");
         else resimDegistir("cok_emin");
 
-        await new Promise(r => setTimeout(r, 2000));
-
     } else if (cevap === 'Hayır') {
         hayirSayaci++;
         evetSayaci = 0;
 
         if (hayirSayaci === 1) resimDegistir("bilemedim");
         else resimDegistir("yanlis_cevap");
-
-        await new Promise(r => setTimeout(r, 2000));
 
     } else {
         evetSayaci = 0;
@@ -65,7 +62,8 @@ async function cevapVer(cevap) {
     dusunuyorResmiAyarla();
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
-    await geminiyeIstekAt();
+    // Beklemeden doğrudan isteği tetikler
+    geminiyeIstekAt();
 }
 
 function dusunuyorResmiAyarla() {
