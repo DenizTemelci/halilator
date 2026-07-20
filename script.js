@@ -1,5 +1,8 @@
-// 🔑 ELİNDEKİ AQ... İLE BAŞLAYAN TOKEN'I BURAYA YAPIŞTIR
-const API_KEY = "AQ.Ab8RN6L22KT4_pBUn9gMQR3rWgPSUp86VslwWowe40K4VTt2dA";
+// 🔑 Yeni Hesaptan Aldığın API Key
+const API_KEY = "AQ.Ab8RN6LsyQ_p5igrFTz2jZntN3E5vnLJQTCIWfyi_at7sy-9SQ";
+
+// cURL örneğindeki resmi Google API adresi
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -79,16 +82,13 @@ function dusunuyorResmiAyarla() {
 }
 
 async function geminiyeIstekAt() {
-    // Hem x-goog-api-key hem de Bearer header'ı göndererek yetkilendirme sorununu aşıyoruz:
-    const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
-
     try {
+        // cURL yapındaki gibi X-goog-api-key header'ı ile istek atıyoruz
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${API_KEY}`,
-                "x-goog-api-key": API_KEY
+                "X-goog-api-key": API_KEY
             },
             body: JSON.stringify({ contents: sohbetGecmisi })
         });
