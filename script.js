@@ -1,7 +1,15 @@
-const API_KEY = "AQ.Ab8RN6LsyQ_p5igrFTz2jZntN3E5vnLJQTCIWfyi_at7sy-9SQ";
+// GitHub botlarının key'i patlatmasını önleyen dinamik anahtar yapısı
+let API_KEY = localStorage.getItem("halilator_gemini_key");
 
-// API Engelini Aşan Proxy Endpoint
-const API_URL = `https://corsproxy.io/?${encodeURIComponent(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`)}`;
+function apiKeyKontrolEt() {
+    if (!API_KEY) {
+        API_KEY = prompt("Lütfen Gemini API Key'inizi yapıştırın:");
+        if (API_KEY) {
+            API_KEY = API_KEY.trim();
+            localStorage.setItem("halilator_gemini_key", API_KEY);
+        }
+    }
+}
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -22,6 +30,13 @@ window.onload = () => {
 };
 
 async function oyunuBaslat() {
+    apiKeyKontrolEt();
+
+    if (!API_KEY) {
+        alert("API Key girmeden oyuna başlayamazsınız.");
+        return;
+    }
+
     sohbetGecmisi = [
         { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
         { role: "user", parts: [{ text: "Oyun başladı. İlk sorunu sor." }] }
@@ -81,6 +96,8 @@ function dusunuyorResmiAyarla() {
 }
 
 async function geminiyeIstekAt() {
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
     try {
         const response = await fetch(API_URL, {
             method: "POST",
@@ -94,6 +111,9 @@ async function geminiyeIstekAt() {
 
         if (data.error) {
             document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
+            // Hatalı key girildiyse hafızayı temizler:
+            localStorage.removeItem("halilator_gemini_key");
+            API_KEY = null;
             butonlariDevreDisiBirak(false);
             return;
         }
