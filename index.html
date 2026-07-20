@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Halilatör - Aklındaki Kişiyi Biliyorum!</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>HALİLATÖR</h1>
+        
+        <!-- Halil'in Görsel Alanı -->
+        <div class="halil-box">
+            <img id="halil-img" src="images/baslangic.png" alt="Halil">
+        </div>
+
+        <!-- Konuşma Balonu (Soru ve Tahmin Yazısı) -->
+        <div class="speech-bubble">
+            <p id="question-text">Aklından birini tut ve 'Başla' butonuna bas!</p>
+        </div>
+
+        <!-- Butonlar -->
+        <div id="action-buttons" class="buttons-container">
+            <button id="start-btn" onclick="oyunuBaslat()">Başla</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
