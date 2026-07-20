@@ -1,20 +1,16 @@
-// BİRİNCİ KEY
-const API_KEY_1 = "AQ.Ab8RN6KkP6KA_5iTOEPervXsicQTKXKLS8A6Int2PtKX_sLFag";
+// API ANAHTARLARI
+const API_KEY_1 = "AQ.Ab8RN6K5WV0T3sv-PsQXBX0JXKR-0PrYzEzx9KYnDd_4MOPqhA";
+const API_KEY_2 = "AQ.Ab8RN6LHiLwQtvs4RvN4-Bbfki5RVqEMFFyER-5wIQpPE5gpog";
 
-// İKİNCİ KEY
-const API_KEY_2 = "AQ.Ab8RN6IV2QiGirJYKur_moBMl-PDCwHjjBzDiPlFmFAdJIBw9w";
-
-const API_KEYS = [API_KEY_1, API_KEY_2];
 let aktifKeyIndex = 0;
+const API_KEYS = [API_KEY_1, API_KEY_2];
 
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent";
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 let sohbetGecmisi = [];
-
-// Sayaçlar ve Durum Değişkenleri
 let evetSayaci = 0;
 let hayirSayaci = 0;
-let sonDusunuyorResmi = 2; // İlk soruda dusunuyor.png ile başlaması için
+let sonDusunuyorResmi = 2;
 
 const SYSTEM_PROMPT = `Sen "Halilatör" adında bir Akinator kopyasısın. Görevin kullanıcının aklından tuttuğu kişiyi doğru tahmin etmektir.
 
@@ -25,7 +21,6 @@ KURALLAR:
 4. %90 emin olduğunda soruyu bırak ve TAM OLARAK şu formatta yanıt ver: "TAHMİN: [Aklındaki Kişinin Adı]".
 5. Türk kültürüne, ünlülerine, yayıncılarına ve genel dünya tarihine/popüler kültürüne hakimsin.`;
 
-// Sayfa yüklendiğinde başlangıç resmini ayarla
 window.onload = () => {
     resimDegistir("baslangic");
 };
@@ -49,10 +44,9 @@ async function cevapVer(cevap) {
     butonlariDevreDisiBirak(true);
     sohbetGecmisi.push({ role: "user", parts: [{ text: cevap }] });
 
-    // Üst üste cevap sayaçlarını güncelle ve ilgili tepki resmini 3 saniye göster
     if (cevap === 'Evet') {
         evetSayaci++;
-        hayirSayaci = 0; // Hayır serisi bozuldu
+        hayirSayaci = 0;
 
         if (evetSayaci === 1) {
             resimDegistir("bildim");
@@ -62,12 +56,11 @@ async function cevapVer(cevap) {
             resimDegistir("cok_emin");
         }
 
-        // 3 Saniye bekle ve soru yüklenme resmine geç
         await new Promise(r => setTimeout(r, 3000));
 
     } else if (cevap === 'Hayır') {
         hayirSayaci++;
-        evetSayaci = 0; // Evet serisi bozuldu
+        evetSayaci = 0;
 
         if (hayirSayaci === 1) {
             resimDegistir("bilemedim");
@@ -75,15 +68,13 @@ async function cevapVer(cevap) {
             resimDegistir("yanlis_cevap");
         }
 
-        // 3 Saniye bekle ve soru yüklenme resmine geç
         await new Promise(r => setTimeout(r, 3000));
 
-    } else { // Emin Değilim
+    } else {
         evetSayaci = 0;
         hayirSayaci = 0;
     }
 
-    // Sıradaki düşünme görseline geç
     dusunuyorResmiAyarla();
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
@@ -100,29 +91,30 @@ function dusunuyorResmiAyarla() {
     }
 }
 
-async function geminiyeIstekAt() {
-    const secilenKey = API_KEYS[aktifKeyIndex];
+async function geminiyeIstekAt(yedekDenediMi = false) {
+    const mevcutKey = API_KEYS[aktifKeyIndex];
 
     try {
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "X-goog-api-key": secilenKey
+                "X-goog-api-key": mevcutKey
             },
             body: JSON.stringify({ contents: sohbetGecmisi })
         });
 
         const data = await response.json();
 
-        if (data.error && (data.error.code === 429 || data.error.status === "RESOURCE_EXHAUSTED")) {
-            console.warn(`Key ${aktifKeyIndex + 1} limite takıldı, diğer key'e geçiliyor...`);
-            aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
-            await geminiyeIstekAt();
-            return;
-        }
-
         if (data.error) {
+            console.warn(`Key ${aktifKeyIndex + 1} hata verdi:`, data.error.message);
+            
+            if (!yedekDenediMi) {
+                aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
+                console.log(`Yedek Key ${aktifKeyIndex + 1}'e geçiliyor...`);
+                return await geminiyeIstekAt(true);
+            }
+
             document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
             butonlariDevreDisiBirak(false);
             return;
@@ -152,10 +144,14 @@ async function geminiyeIstekAt() {
             butonlariDevreDisiBirak(false);
         }
 
-        aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
-
     } catch (error) {
         console.error("Bağlantı Hatası:", error);
+        
+        if (!yedekDenediMi) {
+            aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
+            return await geminiyeIstekAt(true);
+        }
+
         document.getElementById("question-text").innerText = "Bağlantı hatası oluştu!";
         butonlariDevreDisiBirak(false);
     }
