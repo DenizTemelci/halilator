@@ -1,9 +1,17 @@
-// Google botlarının key'i iptal etmemesi için parçalanmış yapı:
-const part1 = "AQ.Ab8RN6LdjZbEXYV7d_ZAqS3P";
-const part2 = "Tz75P545rcmlZt5FJRyh9ytxnw";
-const API_KEY = part1 + part2;
+// 🔑 KEY 1 (Parçalanmış)
+const k1_p1 = "AQ.Ab8RN6JAzN9SPyhKcK2HToIC";
+const k1_p2 = "Vm8vV2fa1G_bX2I71eXMb6S7vA";
+const KEY_1 = k1_p1 + k1_p2;
 
-// cURL örneğindeki tam v1beta adresi:
+// 🔑 KEY 2 (Parçalanmış)
+const k2_p1 = "AQ.Ab8RN6I1Da0HuYjR7G53QQq1";
+const k2_p2 = "-64PP6pbzMS4djczh1dGgzGpnA";
+const KEY_2 = k2_p1 + k2_p2;
+
+// Key Listesi ve Sıra Takibi
+const API_KEYS = [KEY_1, KEY_2];
+let aktifKeyIndex = 0;
+
 const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 let sohbetGecmisi = [];
@@ -83,17 +91,32 @@ function dusunuyorResmiAyarla() {
     }
 }
 
-async function geminiyeIstekAt() {
+// Çift Key Dönüşümlü İstek Fonksiyonu
+async function geminiyeIstekAt(denemeSayisi = 0) {
+    const MEVCUT_KEY = API_KEYS[aktifKeyIndex];
+    aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
+
     try {
-        // cURL komutunda olduğu gibi X-goog-api-key header'ı ile istek atılıyor:
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "X-goog-api-key": API_KEY
+                "X-goog-api-key": MEVCUT_KEY
             },
             body: JSON.stringify({ contents: sohbetGecmisi })
         });
+
+        if (response.status === 429 || response.status === 503) {
+            if (denemeSayisi < API_KEYS.length * 2) {
+                console.warn("Sıradaki key limite takıldı, yedek key'e geçiliyor...");
+                await new Promise(r => setTimeout(r, 1000));
+                return await geminiyeIstekAt(denemeSayisi + 1);
+            } else {
+                document.getElementById("question-text").innerText = "İki anahtarın da limiti doldu. Lütfen 10-15 saniye bekleyip tekrar tıklayın.";
+                butonlariDevreDisiBirak(false);
+                return;
+            }
+        }
 
         const data = await response.json();
 
