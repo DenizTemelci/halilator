@@ -1,7 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 
 // 🔑 AQ... İLE BAŞLAYAN API KEY'İNİ BURAYA YAPIŞTIR:
-const API_KEY = "AQ.Ab8RN6K5WV0T3sv-PsQXBX0JXKR-0PrYzEzx9KYnDd_4MOPqhA";
+const API_KEY = "AQ.Ab8RN6L22KT4_pBUn9gMQR3rWgPSUp86VslwWowe40K4VTt2dA";
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
