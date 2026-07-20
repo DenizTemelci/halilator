@@ -5,7 +5,8 @@ const API_KEY_2 = "AQ.Ab8RN6LHiLwQtvs4RvN4-Bbfki5RVqEMFFyER-5wIQpPE5gpog";
 let aktifKeyIndex = 0;
 const API_KEYS = [API_KEY_1, API_KEY_2];
 
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
+// Yeni API Key Formatı İçin Doğru Model Adresi
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -99,7 +100,7 @@ async function geminiyeIstekAt(yedekDenediMi = false) {
             method: "POST",
             headers: { 
                 "Content-Type": "application/json",
-                "X-goog-api-key": mevcutKey
+                "x-goog-api-key": mevcutKey
             },
             body: JSON.stringify({ contents: sohbetGecmisi })
         });
