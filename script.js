@@ -1,12 +1,9 @@
-// API ANAHTARLARI
-const API_KEY_1 = "AQ.Ab8RN6K5WV0T3sv-PsQXBX0JXKR-0PrYzEzx9KYnDd_4MOPqhA";
-const API_KEY_2 = "AQ.Ab8RN6LHiLwQtvs4RvN4-Bbfki5RVqEMFFyER-5wIQpPE5gpog";
+import { GoogleGenAI } from "@google/genai";
 
-let aktifKeyIndex = 0;
-const API_KEYS = [API_KEY_1, API_KEY_2];
+// 🔑 AQ... İLE BAŞLAYAN API KEY'İNİ BURAYA YAPIŞTIR:
+const API_KEY = "AQ.Ab8RN6K5WV0T3sv-PsQXBX0JXKR-0PrYzEzx9KYnDd_4MOPqhA";
 
-// Yeni API Key Formatı İçin Doğru Model Adresi
-const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -26,7 +23,7 @@ window.onload = () => {
     resimDegistir("baslangic");
 };
 
-async function oyunuBaslat() {
+window.oyunuBaslat = async function() {
     sohbetGecmisi = [
         { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
         { role: "user", parts: [{ text: "Oyun başladı. İlk sorunu sor." }] }
@@ -39,9 +36,9 @@ async function oyunuBaslat() {
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
     await geminiyeIstekAt();
-}
+};
 
-async function cevapVer(cevap) {
+window.cevapVer = async function(cevap) {
     butonlariDevreDisiBirak(true);
     sohbetGecmisi.push({ role: "user", parts: [{ text: cevap }] });
 
@@ -49,13 +46,9 @@ async function cevapVer(cevap) {
         evetSayaci++;
         hayirSayaci = 0;
 
-        if (evetSayaci === 1) {
-            resimDegistir("bildim");
-        } else if (evetSayaci === 2) {
-            resimDegistir("emin");
-        } else {
-            resimDegistir("cok_emin");
-        }
+        if (evetSayaci === 1) resimDegistir("bildim");
+        else if (evetSayaci === 2) resimDegistir("emin");
+        else resimDegistir("cok_emin");
 
         await new Promise(r => setTimeout(r, 3000));
 
@@ -63,11 +56,8 @@ async function cevapVer(cevap) {
         hayirSayaci++;
         evetSayaci = 0;
 
-        if (hayirSayaci === 1) {
-            resimDegistir("bilemedim");
-        } else {
-            resimDegistir("yanlis_cevap");
-        }
+        if (hayirSayaci === 1) resimDegistir("bilemedim");
+        else resimDegistir("yanlis_cevap");
 
         await new Promise(r => setTimeout(r, 3000));
 
@@ -80,7 +70,7 @@ async function cevapVer(cevap) {
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
     await geminiyeIstekAt();
-}
+};
 
 function dusunuyorResmiAyarla() {
     if (sonDusunuyorResmi === 1) {
@@ -92,42 +82,14 @@ function dusunuyorResmiAyarla() {
     }
 }
 
-async function geminiyeIstekAt(yedekDenediMi = false) {
-    const mevcutKey = API_KEYS[aktifKeyIndex];
-
+async function geminiyeIstekAt() {
     try {
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: { 
-                "Content-Type": "application/json",
-                "x-goog-api-key": mevcutKey
-            },
-            body: JSON.stringify({ contents: sohbetGecmisi })
+        const response = await ai.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: sohbetGecmisi,
         });
 
-        const data = await response.json();
-
-        if (data.error) {
-            console.warn(`Key ${aktifKeyIndex + 1} hata verdi:`, data.error.message);
-            
-            if (!yedekDenediMi) {
-                aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
-                console.log(`Yedek Key ${aktifKeyIndex + 1}'e geçiliyor...`);
-                return await geminiyeIstekAt(true);
-            }
-
-            document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
-            butonlariDevreDisiBirak(false);
-            return;
-        }
-
-        if (!data.candidates || !data.candidates[0]) {
-            document.getElementById("question-text").innerText = "Yanıt alınamadı, tekrar deneyin.";
-            butonlariDevreDisiBirak(false);
-            return;
-        }
-
-        const gelenYanit = data.candidates[0].content.parts[0].text.trim();
+        const gelenYanit = response.text.trim();
         sohbetGecmisi.push({ role: "model", parts: [{ text: gelenYanit }] });
 
         if (gelenYanit.startsWith("TAHMİN:")) {
@@ -147,13 +109,7 @@ async function geminiyeIstekAt(yedekDenediMi = false) {
 
     } catch (error) {
         console.error("Bağlantı Hatası:", error);
-        
-        if (!yedekDenediMi) {
-            aktifKeyIndex = (aktifKeyIndex + 1) % API_KEYS.length;
-            return await geminiyeIstekAt(true);
-        }
-
-        document.getElementById("question-text").innerText = "Bağlantı hatası oluştu!";
+        document.getElementById("question-text").innerText = "API Hatası: " + (error.message || "Bağlantı kurulamadı.");
         butonlariDevreDisiBirak(false);
     }
 }
@@ -171,7 +127,7 @@ function butonlariDevreDisiBirak(durum) {
     butonlar.forEach(b => b.disabled = durum);
 }
 
-function sonuc(dogruMu) {
+window.sonuc = function(dogruMu) {
     if (dogruMu) {
         resimDegistir("bildim");
         document.getElementById("question-text").innerText = "Harika! Halilatör yine bildi! 😎";
@@ -183,7 +139,7 @@ function sonuc(dogruMu) {
     document.getElementById("action-buttons").innerHTML = `
         <button onclick="oyunuBaslat()">Tekrar Oyna</button>
     `;
-}
+};
 
 function resimDegistir(durum) {
     const img = document.getElementById("halil-img");
