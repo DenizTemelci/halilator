@@ -96,7 +96,8 @@ function dusunuyorResmiAyarla() {
 }
 
 async function geminiyeIstekAt() {
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+    // Güncellenmiş v1 API URL'si
+    const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
 
     try {
         const response = await fetch(API_URL, {
@@ -111,7 +112,7 @@ async function geminiyeIstekAt() {
 
         if (data.error) {
             document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
-            // Hatalı key girildiyse hafızayı temizler:
+            // Hatalı key durumunda hafızayı temizler
             localStorage.removeItem("halilator_gemini_key");
             API_KEY = null;
             butonlariDevreDisiBirak(false);
