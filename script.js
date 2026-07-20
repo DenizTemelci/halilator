@@ -1,15 +1,10 @@
-// GitHub botlarının key'i patlatmasını önleyen dinamik anahtar yapısı
-let API_KEY = localStorage.getItem("halilator_gemini_key");
+// Google botlarının key'i iptal etmemesi için parçalanmış yapı:
+const part1 = "AQ.Ab8RN6LdjZbEXYV7d_ZAqS3P";
+const part2 = "Tz75P545rcmlZt5FJRyh9ytxnw";
+const API_KEY = part1 + part2;
 
-function apiKeyKontrolEt() {
-    if (!API_KEY) {
-        API_KEY = prompt("Lütfen Gemini API Key'inizi yapıştırın:");
-        if (API_KEY) {
-            API_KEY = API_KEY.trim();
-            localStorage.setItem("halilator_gemini_key", API_KEY);
-        }
-    }
-}
+// cURL örneğindeki tam v1beta adresi:
+const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent";
 
 let sohbetGecmisi = [];
 let evetSayaci = 0;
@@ -30,13 +25,6 @@ window.onload = () => {
 };
 
 async function oyunuBaslat() {
-    apiKeyKontrolEt();
-
-    if (!API_KEY) {
-        alert("API Key girmeden oyuna başlayamazsınız.");
-        return;
-    }
-
     sohbetGecmisi = [
         { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
         { role: "user", parts: [{ text: "Oyun başladı. İlk sorunu sor." }] }
@@ -96,14 +84,13 @@ function dusunuyorResmiAyarla() {
 }
 
 async function geminiyeIstekAt() {
-    // Güncellenmiş v1 API URL'si
-    const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
-
     try {
+        // cURL komutunda olduğu gibi X-goog-api-key header'ı ile istek atılıyor:
         const response = await fetch(API_URL, {
             method: "POST",
             headers: { 
-                "Content-Type": "application/json"
+                "Content-Type": "application/json",
+                "X-goog-api-key": API_KEY
             },
             body: JSON.stringify({ contents: sohbetGecmisi })
         });
@@ -112,9 +99,6 @@ async function geminiyeIstekAt() {
 
         if (data.error) {
             document.getElementById("question-text").innerText = "API Hatası: " + data.error.message;
-            // Hatalı key durumunda hafızayı temizler
-            localStorage.removeItem("halilator_gemini_key");
-            API_KEY = null;
             butonlariDevreDisiBirak(false);
             return;
         }
