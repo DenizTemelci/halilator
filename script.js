@@ -70,7 +70,9 @@ function dusunuyorResmiAyarla() {
 
 // Yeni soru ekrana gelirken tepki resmini ayarlayan akıllı fonksiyon
 function tepkiResmiGoster() {
-    if (evetSayaci === 1) {
+    if (evetSayaci === 0 && hayirSayaci === 0) {
+        resimDegistir("baslangic");
+    } else if (evetSayaci === 1) {
         resimDegistir("bildim");
     } else if (evetSayaci === 2) {
         resimDegistir("emin");
@@ -80,8 +82,6 @@ function tepkiResmiGoster() {
         resimDegistir("bilemedim");
     } else if (hayirSayaci >= 2) {
         resimDegistir("yanlis_cevap");
-    } else {
-        resimDegistir("baslangic");
     }
 }
 
@@ -125,11 +125,7 @@ async function geminiyeIstekAt() {
             `;
         } else {
             // YAPAY ZEKADAN YENİ SORU GELDİĞİ AN TEPKİ RESMİNİ GÖSTERİYORUZ!
-            if (sohbetGecmisi.length <= 3) {
-                resimDegistir("baslangic"); // İlk soruda başlangıç resmi kalsın
-            } else {
-                tepkiResmiGoster(); // Sonraki sorularda evet/hayır sayacına göre resim değişsin
-            }
+            tepkiResmiGoster();
 
             document.getElementById("question-text").innerText = gelenYanit;
             butonlariGuncelle();
