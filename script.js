@@ -38,31 +38,23 @@ function cevapVer(cevap) {
     butonlariDevreDisiBirak(true);
     sohbetGecmisi.push({ role: "user", parts: [{ text: cevap }] });
 
-    // Anlık resim güncellemeleri (Gereksiz bekleme süreleri kaldırıldı)
+    // Sayacı güncelle
     if (cevap === 'Evet') {
         evetSayaci++;
         hayirSayaci = 0;
-
-        if (evetSayaci === 1) resimDegistir("bildim");
-        else if (evetSayaci === 2) resimDegistir("emin");
-        else resimDegistir("cok_emin");
-
     } else if (cevap === 'Hayır') {
         hayirSayaci++;
         evetSayaci = 0;
-
-        if (hayirSayaci === 1) resimDegistir("bilemedim");
-        else resimDegistir("yanlis_cevap");
-
     } else {
         evetSayaci = 0;
         hayirSayaci = 0;
     }
 
+    // Butona basınca ÖNCE düşünüyor resmi ve yazısı çıksın
     dusunuyorResmiAyarla();
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
-    // Beklemeden doğrudan isteği tetikler
+    // Arkadan yapay zekaya isteği gönder
     geminiyeIstekAt();
 }
 
@@ -73,6 +65,23 @@ function dusunuyorResmiAyarla() {
     } else {
         resimDegistir("dusunuyor");
         sonDusunuyorResmi = 1;
+    }
+}
+
+// Yeni soru ekrana gelirken tepki resmini ayarlayan akıllı fonksiyon
+function tepkiResmiGoster() {
+    if (evetSayaci === 1) {
+        resimDegistir("bildim");
+    } else if (evetSayaci === 2) {
+        resimDegistir("emin");
+    } else if (evetSayaci >= 3) {
+        resimDegistir("cok_emin");
+    } else if (hayirSayaci === 1) {
+        resimDegistir("bilemedim");
+    } else if (hayirSayaci >= 2) {
+        resimDegistir("yanlis_cevap");
+    } else {
+        resimDegistir("baslangic");
     }
 }
 
@@ -94,13 +103,15 @@ async function geminiyeIstekAt() {
             return;
         }
 
-        if (!data.candidates || !data.candidates[0]) {
+        // Hem yeni Worker'ın (data.text) hem de eski formatın (data.candidates) desteklendiği güvenli okuma
+        const gelenYanit = (data.text || data.candidates?.[0]?.content?.parts?.[0]?.text || data.choices?.[0]?.message?.content || "").trim();
+
+        if (!gelenYanit) {
             document.getElementById("question-text").innerText = "Yanıt alınamadı, tekrar deneyin.";
             butonlariDevreDisiBirak(false);
             return;
         }
 
-        const gelenYanit = data.candidates[0].content.parts[0].text.trim();
         sohbetGecmisi.push({ role: "model", parts: [{ text: gelenYanit }] });
 
         if (gelenYanit.startsWith("TAHMİN:")) {
@@ -113,6 +124,13 @@ async function geminiyeIstekAt() {
                 <button onclick="sonuc(false)">Hayır, Bilemedin</button>
             `;
         } else {
+            // YAPAY ZEKADAN YENİ SORU GELDİĞİ AN TEPKİ RESMİNİ GÖSTERİYORUZ!
+            if (sohbetGecmisi.length <= 3) {
+                resimDegistir("baslangic"); // İlk soruda başlangıç resmi kalsın
+            } else {
+                tepkiResmiGoster(); // Sonraki sorularda evet/hayır sayacına göre resim değişsin
+            }
+
             document.getElementById("question-text").innerText = gelenYanit;
             butonlariGuncelle();
             butonlariDevreDisiBirak(false);
