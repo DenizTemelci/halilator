@@ -155,10 +155,10 @@ function butonlariDevreDisiBirak(durum) {
 function sonuc(dogruMu) {
     if (dogruMu) {
         resimDegistir("bildim");
-        document.getElementById("question-text").innerText = "Harika! Halilatör yine bildi! 😎";
+        document.getElementById("question-text").innerText = "NOLDU LAN YARRRAM";
     } else {
         resimDegistir("bilemedim");
-        document.getElementById("question-text").innerText = "Tebrikler, beni yendin! 😅";
+        document.getElementById("question-text").innerText = "Cevap ne o zaman YARRRAM";
     }
 
     document.getElementById("action-buttons").innerHTML = `
