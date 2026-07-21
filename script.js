@@ -5,23 +5,31 @@ let sohbetGecmisi = [];
 let evetSayaci = 0;
 let hayirSayaci = 0;
 let sonDusunuyorResmi = 2;
-
-const SYSTEM_PROMPT = `Sen "Halilatör" adında bir Akinator kopyasısın. Görevin kullanıcının aklından tuttuğu kişiyi doğru tahmin etmektir.
-
-KURALLAR:
-1. Kullanıcıya her defasında sadece TEK BİR 'Evet/Hayır' sorusu sor.
-2. Kullanıcının cevaplarına göre aklındaki kişiyi eleyerek ilerle.
-3. Soruyu sorarken direkt soruyu yaz, ekstra açıklama yapma.
-4. %90 emin olduğunda soruyu bırak ve TAM OLARAK şu formatta yanıt ver: "TAHMİN: [Aklındaki Kişinin Adı]".
-5. Türk kültürüne, ünlülerine, yayıncılarına ve genel dünya tarihine/popüler kültürüne hakimsin.`;
+let secilenOyunModu = "zeki"; // Varsayılan mod
 
 window.onload = () => {
     resimDegistir("baslangic");
+    modSecimEkraniGoster(); // Oyun açılır açılmaz mod seçimini göster
 };
+
+// 🎮 YENİ: MOD SEÇİM EKRANI
+function modSecimEkraniGoster() {
+    resimDegistir("baslangic");
+    document.getElementById("question-text").innerText = "Hangi Halilatör ile oynamak istersin?\n\n🧠 Süper Zeki: Kesin mantık ve Akinator zekası!\n🤪 Şaşkın (Eğlenceli): Arda Turan aşığı, komik ve sallamasyon!";
+    
+    document.getElementById("action-buttons").innerHTML = `
+        <button onclick="modSecVeBasla('zeki')" style="background-color: #2b5c8f; color: white;">🧠 Süper Zeki</button>
+        <button onclick="modSecVeBasla('mal')" style="background-color: #d9534f; color: white;">🤪 Şaşkın (Eğlenceli)</button>
+    `;
+}
+
+function modSecVeBasla(mod) {
+    secilenOyunModu = mod; // Oyuncunun seçimini kaydettik ('zeki' veya 'mal')
+    oyunuBaslat();
+}
 
 async function oyunuBaslat() {
     sohbetGecmisi = [
-        { role: "user", parts: [{ text: SYSTEM_PROMPT }] },
         { role: "user", parts: [{ text: "Oyun başladı. İlk sorunu sor." }] }
     ];
     
@@ -29,7 +37,12 @@ async function oyunuBaslat() {
     hayirSayaci = 0;
     
     dusunuyorResmiAyarla();
-    document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
+    
+    if (secilenOyunModu === "mal") {
+        document.getElementById("question-text").innerText = "🤪 Şaşkın Halilatör düşünüyor... (Bakalım kimi sallayacak?)";
+    } else {
+        document.getElementById("question-text").innerText = "🧠 Süper Zeki Halilatör düşünüyor...";
+    }
     
     await geminiyeIstekAt();
 }
@@ -38,7 +51,6 @@ function cevapVer(cevap) {
     butonlariDevreDisiBirak(true);
     sohbetGecmisi.push({ role: "user", parts: [{ text: cevap }] });
 
-    // Sayacı güncelle
     if (cevap === 'Evet') {
         evetSayaci++;
         hayirSayaci = 0;
@@ -50,11 +62,9 @@ function cevapVer(cevap) {
         hayirSayaci = 0;
     }
 
-    // Butona basınca ÖNCE düşünüyor resmi ve yazısı çıksın
     dusunuyorResmiAyarla();
     document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
-    // Arkadan yapay zekaya isteği gönder
     geminiyeIstekAt();
 }
 
@@ -68,7 +78,6 @@ function dusunuyorResmiAyarla() {
     }
 }
 
-// Yeni soru ekrana gelirken tepki resmini ayarlayan akıllı fonksiyon
 function tepkiResmiGoster() {
     if (evetSayaci === 0 && hayirSayaci === 0) {
         resimDegistir("baslangic");
@@ -92,7 +101,8 @@ async function geminiyeIstekAt() {
             headers: { 
                 "Content-Type": "application/json"
             },
-            body: JSON.stringify({ contents: sohbetGecmisi })
+            // Seçilen modu (mod: secilenOyunModu) arka plana gönderiyoruz!
+            body: JSON.stringify({ contents: sohbetGecmisi, mod: secilenOyunModu })
         });
 
         const data = await response.json();
@@ -103,7 +113,6 @@ async function geminiyeIstekAt() {
             return;
         }
 
-        // Hem yeni Worker'ın (data.text) hem de eski formatın (data.candidates) desteklendiği güvenli okuma
         const gelenYanit = (data.text || data.candidates?.[0]?.content?.parts?.[0]?.text || data.choices?.[0]?.message?.content || "").trim();
 
         if (!gelenYanit) {
@@ -117,16 +126,19 @@ async function geminiyeIstekAt() {
         if (gelenYanit.startsWith("TAHMİN:")) {
             const tahmin = gelenYanit.replace("TAHMİN:", "").trim();
             resimDegistir("cok_emin");
-            document.getElementById("question-text").innerText = `Aklındaki kişi: ${tahmin}!\nDoğru bildim mi?`;
+            
+            if (secilenOyunModu === "mal") {
+                document.getElementById("question-text").innerText = `🤪 Şaşkın Halilatör'ün tahmini: ${tahmin}!\n(Kesin salladı ama doğru mu?)`;
+            } else {
+                document.getElementById("question-text").innerText = `🧠 Süper Zeki Halilatör buldu: ${tahmin}!\nDoğru bildim mi?`;
+            }
             
             document.getElementById("action-buttons").innerHTML = `
                 <button onclick="sonuc(true)">Evet, Doğru!</button>
                 <button onclick="sonuc(false)">Hayır, Bilemedin</button>
             `;
         } else {
-            // YAPAY ZEKADAN YENİ SORU GELDİĞİ AN TEPKİ RESMİNİ GÖSTERİYORUZ!
             tepkiResmiGoster();
-
             document.getElementById("question-text").innerText = gelenYanit;
             butonlariGuncelle();
             butonlariDevreDisiBirak(false);
@@ -155,14 +167,23 @@ function butonlariDevreDisiBirak(durum) {
 function sonuc(dogruMu) {
     if (dogruMu) {
         resimDegistir("bildim");
-        document.getElementById("question-text").innerText = "NOLDU LAN YARRRAM";
+        if (secilenOyunModu === "mal") {
+            document.getElementById("question-text").innerText = "Hahaha! Şaşkın Halil tamamen sallayarak bildi! 🤣🤣";
+        } else {
+            document.getElementById("question-text").innerText = "Harika! Süper Zeki Halilatör yine bildi! 😎";
+        }
     } else {
         resimDegistir("bilemedim");
-        document.getElementById("question-text").innerText = "Cevap ne o zaman YARRRAM";
+        if (secilenOyunModu === "mal") {
+            document.getElementById("question-text").innerText = "Eee normal, Şaşkın Halil yine Arda Turan falan sanmıştır... 🤪🤣";
+        } else {
+            document.getElementById("question-text").innerText = "Tebrikler, beni yendin! 😅";
+        }
     }
 
+    // Oyun bitince tekrar başlatmak yerine mod seçimine döndürüyoruz
     document.getElementById("action-buttons").innerHTML = `
-        <button onclick="oyunuBaslat()">Tekrar Oyna</button>
+        <button onclick="modSecimEkraniGoster()">Tekrar Oyna (Mod Seç)</button>
     `;
 }
 
