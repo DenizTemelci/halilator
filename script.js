@@ -5,26 +5,26 @@ let sohbetGecmisi = [];
 let evetSayaci = 0;
 let hayirSayaci = 0;
 let sonDusunuyorResmi = 2;
-let secilenOyunModu = "zeki"; // Varsayılan mod
+let secilenOyunModu = "zeki";
 
 window.onload = () => {
     resimDegistir("baslangic");
-    modSecimEkraniGoster(); // Oyun açılır açılmaz mod seçimini göster
+    modSecimEkraniGoster();
 };
 
-// 🎮 YENİ: MOD SEÇİM EKRANI
+// 🎮 MOD SEÇİM EKRANI (Açıklama yok, direkt isimler!)
 function modSecimEkraniGoster() {
     resimDegistir("baslangic");
-    document.getElementById("question-text").innerText = "Hangi Halilatör ile oynamak istersin?\n\n🧠 Süper Zeki: Kesin mantık ve Akinator zekası!\n🤪 Şaşkın (Eğlenceli): Arda Turan aşığı, komik ve sallamasyon!";
+    document.getElementById("question-text").innerText = "Hangi Halilatör ile oynamak istersin?";
     
     document.getElementById("action-buttons").innerHTML = `
-        <button onclick="modSecVeBasla('zeki')" style="background-color: #2b5c8f; color: white;">🧠 Süper Zeki</button>
-        <button onclick="modSecVeBasla('mal')" style="background-color: #d9534f; color: white;">🤪 Şaşkın (Eğlenceli)</button>
+        <button onclick="modSecVeBasla('zeki')" style="background-color: #2b5c8f; color: white;"> Zeki Halil</button>
+        <button onclick="modSecVeBasla('mal')" style="background-color: #d9534f; color: white;"> Mal Halil (Orijinal)</button>
     `;
 }
 
 function modSecVeBasla(mod) {
-    secilenOyunModu = mod; // Oyuncunun seçimini kaydettik ('zeki' veya 'mal')
+    secilenOyunModu = mod;
     oyunuBaslat();
 }
 
@@ -37,12 +37,7 @@ async function oyunuBaslat() {
     hayirSayaci = 0;
     
     dusunuyorResmiAyarla();
-    
-    if (secilenOyunModu === "mal") {
-        document.getElementById("question-text").innerText = "🤪 Şaşkın Halilatör düşünüyor... (Bakalım kimi sallayacak?)";
-    } else {
-        document.getElementById("question-text").innerText = "🧠 Süper Zeki Halilatör düşünüyor...";
-    }
+    document.getElementById("question-text").innerText = "Halilatör düşünüyor...";
     
     await geminiyeIstekAt();
 }
@@ -101,7 +96,6 @@ async function geminiyeIstekAt() {
             headers: { 
                 "Content-Type": "application/json"
             },
-            // Seçilen modu (mod: secilenOyunModu) arka plana gönderiyoruz!
             body: JSON.stringify({ contents: sohbetGecmisi, mod: secilenOyunModu })
         });
 
@@ -127,11 +121,7 @@ async function geminiyeIstekAt() {
             const tahmin = gelenYanit.replace("TAHMİN:", "").trim();
             resimDegistir("cok_emin");
             
-            if (secilenOyunModu === "mal") {
-                document.getElementById("question-text").innerText = `🤪 Şaşkın Halilatör'ün tahmini: ${tahmin}!\n(Kesin salladı ama doğru mu?)`;
-            } else {
-                document.getElementById("question-text").innerText = `🧠 Süper Zeki Halilatör buldu: ${tahmin}!\nDoğru bildim mi?`;
-            }
+            document.getElementById("question-text").innerText = `Halilatör'ün tahmini: ${tahmin}!\nDoğru bildim mi?`;
             
             document.getElementById("action-buttons").innerHTML = `
                 <button onclick="sonuc(true)">Evet, Doğru!</button>
@@ -167,23 +157,14 @@ function butonlariDevreDisiBirak(durum) {
 function sonuc(dogruMu) {
     if (dogruMu) {
         resimDegistir("bildim");
-        if (secilenOyunModu === "mal") {
-            document.getElementById("question-text").innerText = "Hahaha! Şaşkın Halil tamamen sallayarak bildi! 🤣🤣";
-        } else {
-            document.getElementById("question-text").innerText = "Harika! Süper Zeki Halilatör yine bildi! 😎";
-        }
+        document.getElementById("question-text").innerText = "NOLDU YARRRAM";
     } else {
         resimDegistir("bilemedim");
-        if (secilenOyunModu === "mal") {
-            document.getElementById("question-text").innerText = "Eee normal, Şaşkın Halil yine Arda Turan falan sanmıştır... 🤪🤣";
-        } else {
-            document.getElementById("question-text").innerText = "Tebrikler, beni yendin! 😅";
-        }
+        document.getElementById("question-text").innerText = "Cevap ne o zaman YARRRAM";
     }
 
-    // Oyun bitince tekrar başlatmak yerine mod seçimine döndürüyoruz
     document.getElementById("action-buttons").innerHTML = `
-        <button onclick="modSecimEkraniGoster()">Tekrar Oyna (Mod Seç)</button>
+        <button onclick="modSecimEkraniGoster()">Tekrar Oyna</button>
     `;
 }
 
